@@ -1,4 +1,3 @@
-# Day10mapchallenge_christchurch-pulse
 
 # Christchurch Pulse — #30DayMapChallenge 2026 Day 10
 
