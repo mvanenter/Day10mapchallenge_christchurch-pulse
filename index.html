@@ -78,13 +78,19 @@
 <script>
 const CHCH = [-43.5321, 172.6362];
 const map = L.map('map', { center: CHCH, zoom: 13, zoomControl: false });
-map.getContainer().style.background = '#0d1117';
+
+// Free basemap that doesn't block
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles &copy; Esri',
+  maxZoom: 16,
+  opacity: 0.7
+}).addTo(map);
 
 fetch('urban_extent.geojson')
   .then(r => r.ok ? r.json() : Promise.reject())
   .then(geojson => {
     L.geoJSON(geojson, {
-      style: { color: '#3a4560', weight: 1.2, fillColor: '#121820', fillOpacity: 0.65 }
+      style: { color: '#5a6a90', weight: 1.5, fillColor: '#121820', fillOpacity: 0.25 }
     }).addTo(map);
   })
   .catch(() => {});
@@ -115,67 +121,64 @@ fetch('bus_stops.geojson')
   })
   .catch(() => {});
 
-// Real bus routes from ECan (layer 2)
-fetch('https://gis.ecan.govt.nz/arcgis/rest/services/Public/Bus_Routes/MapServer/2/query?where=1%3D1&outFields=*&f=geojson&outSR=4326')
-  .then(r => r.json())
-  .then(geojson => {
-    console.log('ECan routes loaded:', geojson.features?.length || 0);
-    L.geoJSON(geojson, {
-      style: f => {
-        const route = String(f.properties?.RouteNo || f.properties?.ROUTE || '');
-        return {
-          color: routeColors[route] || '#6b7c9f',
-          weight: 3,
-          opacity: 0.7
-        };
-      }
-    }).addTo(map);
-  })
-  .catch(err => console.log('ECan routes failed:', err));
-
 const routeColors = {
   "1": "#1e88e5", "3": "#43a047", "5": "#fb8c00", "7": "#8e24aa",
   "Orbiter": "#00c853", "29": "#039be5", "44": "#e53935", "60": "#fdd835",
   "80": "#00897b", "95": "#d81b60", "100": "#5e35b1", "120": "#6d4c41"
 };
-const routes = Object.keys(routeColors);
-
-const routePaths = {
-  "1": [[-43.46,172.66],[-43.48,172.645],[-43.50,172.64],[-43.515,172.635],[-43.53,172.64],[-43.545,172.63],[-43.56,172.625],[-43.58,172.62]],
-  "3": [[-43.49,172.52],[-43.505,172.55],[-43.52,172.58],[-43.53,172.64],[-43.54,172.68],[-43.555,172.73],[-43.57,172.76]],
-  "5": [[-43.57,172.50],[-43.55,172.54],[-43.54,172.58],[-43.53,172.64],[-43.51,172.69],[-43.50,172.73]],
-  "7": [[-43.59,172.56],[-43.57,172.59],[-43.55,172.61],[-43.53,172.64],[-43.51,172.66],[-43.495,172.69]],
-  "Orbiter": [[-43.515,172.58],[-43.50,172.62],[-43.505,172.66],[-43.52,172.70],[-43.545,172.69],[-43.56,172.65],[-43.55,172.60],[-43.525,172.58],[-43.515,172.58]],
-  "29": [[-43.47,172.61],[-43.49,172.62],[-43.51,172.63],[-43.53,172.64],[-43.55,172.65]],
-  "44": [[-43.50,172.67],[-43.52,172.65],[-43.535,172.64],[-43.55,172.63],[-43.57,172.62]],
-  "60": [[-43.56,172.54],[-43.54,172.58],[-43.53,172.64],[-43.52,172.70]],
-  "80": [[-43.64,172.46],[-43.60,172.51],[-43.56,172.56],[-43.53,172.64],[-43.50,172.71]],
-  "95": [[-43.38,172.66],[-43.42,172.655],[-43.46,172.65],[-43.50,172.645],[-43.53,172.64]],
-  "100": [[-43.57,172.53],[-43.55,172.56],[-43.535,172.60],[-43.52,172.64]],
-  "120": [[-43.50,172.57],[-43.515,172.60],[-43.53,172.625],[-43.545,172.65]]
-};
-
-Object.entries(routePaths).forEach(([route, path]) => {
-  L.polyline(path, {
-    color: routeColors[route] || '#6b7c9f',
-    weight: 3.5,
-    opacity: 0.75,
-    lineCap: 'round'
-  }).addTo(map);
-});
 
 const buses = [];
 const busLayer = L.layerGroup().addTo(map);
-for (let i = 0; i < 36; i++) {
-  const route = routes[Math.floor(Math.random() * routes.length)];
-  const path = routePaths[route];
-  buses.push({
-    route,
-    path,
-    progress: Math.random() * (path.length - 1),
-    speed: 0.008 + Math.random() * 0.012
-  });
-}
+
+// Clipped real bus routes (ECan layer 2, clipped to urban extent)
+fetch('routes_clipped.geojson')
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(geojson => {
+    console.log('Clipped routes loaded:', geojson.features?.length || 0);
+    L.geoJSON(geojson, {
+      style: f => {
+        const route = String(f.properties?.RouteNo || '');
+        return {
+          color: routeColors[route] || '#6b7c9f',
+          weight: 3.2,
+          opacity: 0.8
+        };
+      }
+    }).addTo(map);
+
+    // Build path list for buses from clipped routes
+    const pathsByRoute = {};
+    (geojson.features || []).forEach(f => {
+      const route = String(f.properties?.RouteNo || 'X');
+      if (!pathsByRoute[route]) pathsByRoute[route] = [];
+      const coords = f.geometry?.coordinates;
+      if (coords && coords.length) {
+        if (f.geometry.type === 'LineString') {
+          pathsByRoute[route].push(coords.map(c => [c[1], c[0]]));
+        } else if (f.geometry.type === 'MultiLineString') {
+          coords.forEach(line => pathsByRoute[route].push(line.map(c => [c[1], c[0]])));
+        }
+      }
+    });
+
+    // Create buses on real clipped routes
+    const routeKeys = Object.keys(pathsByRoute).filter(k => pathsByRoute[k].length);
+    for (let i = 0; i < 40; i++) {
+      const route = routeKeys[Math.floor(Math.random() * routeKeys.length)] || '1';
+      const paths = pathsByRoute[route];
+      const path = paths[Math.floor(Math.random() * paths.length)];
+      if (path && path.length > 1) {
+        buses.push({
+          route,
+          path,
+          progress: Math.random() * (path.length - 1),
+          speed: 0.015 + Math.random() * 0.02
+        });
+      }
+    }
+    console.log('Buses on clipped routes:', buses.length);
+  })
+  .catch(err => console.log('routes_clipped.geojson failed:', err));
 
 let minutes = 360;
 let playing = false;
@@ -259,17 +262,10 @@ function update() {
     }).addTo(busLayer);
   });
 
-  let sLat=0, sLng=0, sW=0;
-  Object.values(routePaths).forEach(path => {
-    const mid = path[Math.floor(path.length/2)];
-    const w = activity;
-    sLat += mid[0] * w; sLng += mid[1] * w; sW += w;
-  });
-  if (sW > 0) {
-    const pt = map.latLngToContainerPoint([sLat/sW, sLng/sW]);
-    heartEl.style.left = pt.x + 'px';
-    heartEl.style.top = pt.y + 'px';
-  }
+  // Heart near city centre
+  const pt = map.latLngToContainerPoint(CHCH);
+  heartEl.style.left = pt.x + 'px';
+  heartEl.style.top = pt.y + 'px';
   const heartColor = activity > 0.7 ? '#ff6b9d' : '#c084fc';
   heartEl.style.background = heartColor;
   heartEl.style.boxShadow = `0 0 18px ${heartColor}, 0 0 40px ${heartColor}`;
