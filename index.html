@@ -2,76 +2,72 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Christchurch Pulse — #30DayMapChallenge 2026 Day 10</title>
+<title>Christchurch Pulse | #30DayMapChallenge 2026 Day 10</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-  :root { --bg: #0a0e17; --panel: rgba(10,14,23,0.88); --text: #e8eaed; --accent: #ff6b9d; }
-  * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; overflow: hidden; }
-  #map { position: absolute; inset: 0; z-index: 1; background: #0d1117; }
-  .overlay { position: absolute; z-index: 1000; pointer-events: none; }
-  .title { top: 20px; left: 20px; pointer-events: auto; }
-  .title h1 { margin: 0 0 4px 0; font-size: 26px; font-weight: 700; }
-  .title p { margin: 0; font-size: 12px; opacity: 0.7; }
-  .controls {
-    bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: var(--panel); backdrop-filter: blur(12px);
-    border-radius: 14px; padding: 12px 20px;
-    display: flex; align-items: center; gap: 14px;
-    pointer-events: auto; min-width: 420px;
-  }
-  .time-display { font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 600; min-width: 64px; }
-  input[type=range] { flex: 1; accent-color: var(--accent); }
-  button { background: rgba(255,255,255,0.12); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
-  .heart {
-    position: absolute; width: 22px; height: 22px; background: var(--accent);
-    border-radius: 50%; box-shadow: 0 0 16px var(--accent), 0 0 32px var(--accent);
-    transform: translate(-50%, -50%); pointer-events: none; z-index: 500;
-    animation: pulse 1.2s ease-in-out infinite;
-  }
-  .heart::before { content: "♥"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; }
-  @keyframes pulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.25)} }
-  .legend { top: 20px; right: 20px; background: var(--panel); border-radius: 10px; padding: 12px; font-size: 11px; pointer-events: auto; max-width: 200px; }
-  .timetable {
-    top: 180px; right: 20px; background: var(--panel); border-radius: 10px;
-    padding: 12px; font-size: 11px; pointer-events: auto; max-width: 240px;
-    max-height: 320px; overflow-y: auto;
-  }
-  .timetable h3 { margin: 0 0 8px 0; font-size: 13px; }
-  .timetable table { width: 100%; border-collapse: collapse; }
-  .timetable td { padding: 3px 4px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .timetable .freq { text-align: right; opacity: 0.8; }
-  .credit { bottom: 90px; left: 20px; font-size: 10px; opacity: 0.55; max-width: 260px; }
+:root { --bg: #0a0e17; --text: #e8eaed; --accent: #ff6b9d; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; overflow: hidden; }
+#map { position: absolute; inset: 0; z-index: 1; background: #0d1117; }
+.overlay { position: absolute; z-index: 1000; pointer-events: none; }
+
+.title { top: 20px; left: 24px; pointer-events: auto; max-width: calc(100vw - 48px); }
+.title h1 {
+  margin: 0 0 8px 0;
+  font-size: clamp(36px, 6.5vw, 72px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 18px rgba(0,0,0,0.7);
+}
+.title p { margin: 0; font-size: clamp(13px, 1.6vw, 16px); line-height: 1.4; opacity: 0.85; text-shadow: 0 1px 8px rgba(0,0,0,0.8); }
+
+.heart {
+  position: absolute; width: 22px; height: 22px; background: var(--accent);
+  border-radius: 50%; box-shadow: 0 0 18px var(--accent), 0 0 40px var(--accent);
+  transform: translate(-50%, -50%); pointer-events: none; z-index: 500;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.heart::before { content: "♥"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; }
+@keyframes pulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.25)} }
+
+.legend {
+  top: 20px; right: 20px; width: 250px;
+  background: rgba(10,14,23,0.88); backdrop-filter: blur(12px);
+  border-radius: 10px; padding: 12px 14px; font-size: 12px;
+  pointer-events: auto; max-height: calc(100vh - 140px); overflow-y: auto;
+}
+.legend h3 { margin: 0 0 4px 0; font-size: 14px; }
+.legend .note { margin: 0 0 8px 0; font-size: 11px; line-height: 1.4; opacity: 0.75; }
+.legend .row { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.legend .swatch { width: 22px; height: 4px; border-radius: 2px; flex: none; }
+.legend .num { font-weight: 700; min-width: 52px; }
+.legend .name { opacity: 0.85; }
+
+.credit { bottom: 20px; left: 24px; font-size: 10px; opacity: 0.6; max-width: 320px; }
 </style>
 </head>
 <body>
+
 <div id="map"></div>
+
 <div class="overlay title">
   <h1>Christchurch Pulse</h1>
   <p>#30DayMapChallenge 2026 · Day 10 · Prompting only<br>Where does the city’s heart beat?</p>
 </div>
-<div class="overlay legend">
-  <strong>Bus Activity</strong><br>
-  <span style="color:#4a6cf7">●</span> Night &nbsp;
-  <span style="color:#ff6b9d">●</span> Dawn/Dusk<br>
-  <span style="color:#ffb347">●</span> Day &nbsp;
-  <span style="color:#c084fc">●</span> Evening<br><br>
-  ♥ = density peak
+
+<div class="overlay legend" id="legend">
+  <h3>Metro bus routes</h3>
+  <p class="note">The number on each bus is its Metro route number.</p>
+  <div id="legend-rows"></div>
 </div>
-<div class="overlay timetable" id="timetable">
-  <h3>Approximate Timetable</h3>
-  <table id="tt-table"></table>
-</div>
+
 <div class="overlay credit">
-  Data: CCC DP Christchurch City Urban Extent · LINZ Parcels (CC BY 4.0) · Metro Christchurch<br>
-  Entire map generated by AI prompt
+  Data: Christchurch City Council Open Data (urban extent, street centre line) · Environment Canterbury (bus routes, bus stops, route colours) · Basemap: Esri Dark Gray Canvas<br>
+  Buses are illustrative, not live. Entire map generated by AI prompt
 </div>
-<div class="overlay controls">
-  <button id="play">▶</button>
-  <div class="time-display" id="time">06:00</div>
-  <input type="range" id="slider" min="0" max="1439" value="360">
-</div>
+
 <div id="heart" class="heart"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -79,7 +75,6 @@
 const CHCH = [-43.5321, 172.6362];
 const map = L.map('map', { center: CHCH, zoom: 13, zoomControl: false });
 
-// Free basemap that doesn't block
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
   attribution: 'Tiles &copy; Esri',
   maxZoom: 16,
@@ -95,7 +90,6 @@ fetch('urban_extent.geojson')
   })
   .catch(() => {});
 
-// Base roads
 fetch('roads_clipped.geojson')
   .then(r => r.ok ? r.json() : Promise.reject())
   .then(geojson => {
@@ -105,139 +99,185 @@ fetch('roads_clipped.geojson')
   })
   .catch(() => {});
 
-// Bus stops
 fetch('bus_stops.geojson')
   .then(r => r.ok ? r.json() : Promise.reject())
   .then(geojson => {
     L.geoJSON(geojson, {
       pointToLayer: (f, latlng) => L.circleMarker(latlng, {
-        radius: 2.2,
-        fillColor: '#ffffff',
-        color: '#888',
-        weight: 0.4,
-        fillOpacity: 0.7
+        radius: 2.2, fillColor: '#ffffff', color: '#888', weight: 0.4, fillOpacity: 0.7
       })
     }).addTo(map);
   })
   .catch(() => {});
 
+// Official ECan route colours, keyed by RouteNo (the Orbiter is "Or", Yellow Line "Y", Orange Line "O")
 const routeColors = {
-  "1": "#1e88e5", "3": "#43a047", "5": "#fb8c00", "7": "#8e24aa",
-  "Orbiter": "#00c853", "29": "#039be5", "44": "#e53935", "60": "#fdd835",
-  "80": "#00897b", "95": "#d81b60", "100": "#5e35b1", "120": "#6d4c41"
+  "F": "#005899",
+  "Gl": "#ffda00",
+  "Gr": "#00b6b5",
+  "O": "#f37021",
+  "Or": "#79bc43",
+  "TL": "#bf6ead",
+  "W": "#00b6b5",
+  "Y": "#ffc20e",
+  "1": "#3ebced",
+  "3": "#554588",
+  "5": "#ffc20e",
+  "7": "#f37021",
+  "17": "#ec008c",
+  "28": "#f79328",
+  "29": "#00539f",
+  "44": "#0074ad",
+  "45": "#956338",
+  "60": "#da6fab",
+  "80": "#717dbd",
+  "86": "#cbdb2a",
+  "87": "#c34074",
+  "91": "#008644",
+  "92": "#956338",
+  "95": "#c41039",
+  "97": "#906fa1",
+  "100": "#88807e",
+  "107": "#46a299",
+  "108": "#a285b3",
+  "120": "#faa61a",
+  "125": "#5f9937",
+  "130": "#9f3925",
+  "135": "#0db14b",
+  "140": "#00929e",
+  "145": "#956438",
+  "150": "#9853a1",
+  "155": "#9d6da9",
+  "535": "#d2bfa5",
+  "820": "#46ba7c",
+  "960": "#f15b4e"
 };
 
+function colorFor(route) { return routeColors[route] || '#6b7c9f'; }
+
+// Route names from the ECan Bus Routes service (used when the data has no RouteName)
+const routeNames = {
+  "F": "Diamond Harbour Ferry",
+  "Gl": "Gleniti",
+  "Gr": "Grantlea",
+  "O": "Orange Line",
+  "Or": "Orbiter",
+  "TL": "Timaru Link",
+  "W": "Watlington",
+  "Y": "Yellow Line",
+  "1": "Rangiora / Cashmere",
+  "3": "Airport / Sumner",
+  "5": "Rolleston / New Brighton",
+  "7": "Halswell / Queenspark",
+  "17": "Bryndwr / Huntsbury",
+  "28": "Casebrook / Lyttelton",
+  "29": "Airport / City",
+  "44": "Shirley / Westmorland",
+  "45": "Westmorland / City",
+  "60": "Hillmorton / Southshore",
+  "80": "Lincoln / Parklands",
+  "86": "Darfield / City",
+  "87": "Leeston / City",
+  "91": "Rangiora / City direct",
+  "92": "Kaiapoi / City direct",
+  "95": "City / Pegasus and Waikuku",
+  "97": "Rangiora / Pegasus",
+  "100": "Wigram / The Palms",
+  "107": "Styx Mill / Northlands",
+  "108": "Casebrook / Northlands",
+  "120": "Burnside / Spreydon",
+  "125": "Redwood / Westlake",
+  "130": "Hei Hei / Avonhead",
+  "135": "The Palms / New Brighton",
+  "140": "Russley / Mt Pleasant",
+  "145": "Westmorland / Eastgate",
+  "150": "The Palms / Spencerville",
+  "155": "Eastgate / Lyttelton",
+  "535": "Eastgate / Lyttelton and Rapaki",
+  "820": "Burnham / Lincoln via Rolleston",
+  "960": "Rangiora / Hornby"
+};
+
+function buildLegend(routeKeys, namesByRoute) {
+  const sorted = routeKeys.slice().sort((a, b) => {
+    const na = parseInt(a), nb = parseInt(b);
+    if (isNaN(na) && isNaN(nb)) return a.localeCompare(b);
+    if (isNaN(na)) return -1;
+    if (isNaN(nb)) return 1;
+    return na - nb;
+  });
+  document.getElementById('legend-rows').innerHTML = sorted.map(k => {
+    const c = colorFor(k);
+    const name = (namesByRoute && namesByRoute[k]) || routeNames[k] || '';
+    return `<div class="row"><span class="swatch" style="background:${c}"></span><span class="num" style="color:${c}">${k}</span><span class="name">${name}</span></div>`;
+  }).join('');
+}
+
+const BUSES_PER_ROUTE = 3;
 const buses = [];
 const busLayer = L.layerGroup().addTo(map);
 
-// Clipped real bus routes (ECan layer 2, clipped to urban extent)
+// Bus routes (Environment Canterbury, clipped to the urban extent)
 fetch('routes_clipped.geojson')
   .then(r => r.ok ? r.json() : Promise.reject())
   .then(geojson => {
-    console.log('Clipped routes loaded:', geojson.features?.length || 0);
     L.geoJSON(geojson, {
-      style: f => {
-        const route = String(f.properties?.RouteNo || '');
-        return {
-          color: routeColors[route] || '#6b7c9f',
-          weight: 3.2,
-          opacity: 0.8
-        };
-      }
+      style: f => ({
+        color: colorFor(String(f.properties?.RouteNo || '').trim()),
+        weight: 3.2,
+        opacity: 0.8
+      })
     }).addTo(map);
 
-    // Build path list for buses from clipped routes
+    // Collect the line paths for each route
     const pathsByRoute = {};
+    const namesByRoute = {};
     (geojson.features || []).forEach(f => {
-      const route = String(f.properties?.RouteNo || 'X');
+      const route = String(f.properties?.RouteNo || '').trim();
+      if (!route) return;
       if (!pathsByRoute[route]) pathsByRoute[route] = [];
+      if (!namesByRoute[route] && f.properties?.RouteName) namesByRoute[route] = String(f.properties.RouteName).replace(/\//g, ' / ');
       const coords = f.geometry?.coordinates;
-      if (coords && coords.length) {
-        if (f.geometry.type === 'LineString') {
-          pathsByRoute[route].push(coords.map(c => [c[1], c[0]]));
-        } else if (f.geometry.type === 'MultiLineString') {
-          coords.forEach(line => pathsByRoute[route].push(line.map(c => [c[1], c[0]])));
-        }
+      if (!coords || !coords.length) return;
+      if (f.geometry.type === 'LineString') {
+        pathsByRoute[route].push(coords.map(c => [c[1], c[0]]));
+      } else if (f.geometry.type === 'MultiLineString') {
+        coords.forEach(line => pathsByRoute[route].push(line.map(c => [c[1], c[0]])));
       }
     });
 
-    // Create buses on real clipped routes
-    const routeKeys = Object.keys(pathsByRoute).filter(k => pathsByRoute[k].length);
-    for (let i = 0; i < 40; i++) {
-      const route = routeKeys[Math.floor(Math.random() * routeKeys.length)] || '1';
-      const paths = pathsByRoute[route];
-      const path = paths[Math.floor(Math.random() * paths.length)];
-      if (path && path.length > 1) {
+    buildLegend(Object.keys(pathsByRoute).filter(k => pathsByRoute[k].length), namesByRoute);
+
+    // Same number of buses on every route, each following that route's own line
+    Object.keys(pathsByRoute).forEach(route => {
+      const paths = pathsByRoute[route].filter(p => p.length > 1);
+      if (!paths.length) return;
+      for (let i = 0; i < BUSES_PER_ROUTE; i++) {
+        const path = paths[Math.floor(Math.random() * paths.length)];
         buses.push({
           route,
           path,
           progress: Math.random() * (path.length - 1),
-          speed: 0.015 + Math.random() * 0.02
+          speed: 0.02 + Math.random() * 0.015
         });
       }
-    }
-    console.log('Buses on clipped routes:', buses.length);
+    });
   })
   .catch(err => console.log('routes_clipped.geojson failed:', err));
 
-let minutes = 360;
-let playing = false;
-const slider = document.getElementById('slider');
-const timeEl = document.getElementById('time');
-const playBtn = document.getElementById('play');
 const heartEl = document.getElementById('heart');
-const ttTable = document.getElementById('tt-table');
 
-const timetableData = [
-  { route: "1", name: "Rangiora/Cashmere", base: 10 },
-  { route: "3", name: "Airport/Sumner", base: 12 },
-  { route: "5", name: "Rolleston/New Brighton", base: 15 },
-  { route: "7", name: "Halswell/Queenspark", base: 10 },
-  { route: "Orbiter", name: "Orbiter", base: 8 },
-  { route: "29", name: "City/Airport", base: 15 },
-  { route: "44", name: "Shirley/Westmorland", base: 12 },
-  { route: "60", name: "Wigram/Southshore", base: 20 },
-  { route: "80", name: "Lincoln/Parklands", base: 15 },
-  { route: "95", name: "Waikuku/Pegasus", base: 30 },
-  { route: "100", name: "Wigram/The Palms", base: 20 },
-  { route: "120", name: "Burnside/Spreydon", base: 25 }
-];
-
-function formatTime(m) {
-  const h = Math.floor(m / 60) % 24;
-  const min = m % 60;
-  return `${String(h).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
-}
-function getActivity(m) {
-  const h = (m / 60) % 24;
-  if (h < 5) return 0.15;
-  if (h < 7) return 0.45;
-  if (h < 9) return 1.0;
-  if (h < 15) return 0.55;
-  if (h < 18) return 0.92;
-  if (h < 21) return 0.6;
-  return 0.25;
-}
-function updateTimetable() {
-  const h = (minutes / 60) % 24;
-  let multiplier = 1;
-  if (h < 6 || h > 21) multiplier = 2.5;
-  else if (h < 9 || (h > 15 && h < 18)) multiplier = 0.6;
-  ttTable.innerHTML = timetableData.map(t => {
-    const freq = Math.round(t.base * multiplier);
-    const c = routeColors[t.route] || '#fff';
-    return `<tr><td style="color:${c}"><b>${t.route}</b></td><td>${t.name}</td><td class="freq">every ${freq} min</td></tr>`;
-  }).join('');
+function placeHeart() {
+  const pt = map.latLngToContainerPoint(CHCH);
+  heartEl.style.left = pt.x + 'px';
+  heartEl.style.top = pt.y + 'px';
 }
 
-function update() {
-  timeEl.textContent = formatTime(minutes);
-  slider.value = minutes;
-  const activity = getActivity(minutes);
-
+function animate() {
   busLayer.clearLayers();
+
   buses.forEach(bus => {
-    bus.progress += bus.speed * (0.6 + activity * 0.8);
+    bus.progress += bus.speed;
     if (bus.progress >= bus.path.length - 1) bus.progress = 0;
     const i = Math.floor(bus.progress);
     const f = bus.progress - i;
@@ -245,14 +285,12 @@ function update() {
     const b = bus.path[Math.min(i + 1, bus.path.length - 1)];
     const lat = a[0] + (b[0] - a[0]) * f;
     const lng = a[1] + (b[1] - a[1]) * f;
-    const routeColor = routeColors[bus.route] || '#ff6b9d';
+    const color = colorFor(bus.route);
+
     L.circleMarker([lat, lng], {
-      radius: 4 + activity * 4,
-      fillColor: routeColor,
-      color: '#fff',
-      weight: 0.6,
-      fillOpacity: 0.9
+      radius: 6, fillColor: color, color: '#fff', weight: 0.6, fillOpacity: 0.9
     }).addTo(busLayer);
+
     L.marker([lat, lng], {
       icon: L.divIcon({
         className: 'route-label',
@@ -262,34 +300,12 @@ function update() {
     }).addTo(busLayer);
   });
 
-  // Heart near city centre
-  const pt = map.latLngToContainerPoint(CHCH);
-  heartEl.style.left = pt.x + 'px';
-  heartEl.style.top = pt.y + 'px';
-  const heartColor = activity > 0.7 ? '#ff6b9d' : '#c084fc';
-  heartEl.style.background = heartColor;
-  heartEl.style.boxShadow = `0 0 18px ${heartColor}, 0 0 40px ${heartColor}`;
-
-  updateTimetable();
+  requestAnimationFrame(animate);
 }
 
-slider.oninput = e => { minutes = +e.target.value; update(); };
-playBtn.onclick = () => {
-  playing = !playing;
-  playBtn.textContent = playing ? '❚❚' : '▶';
-  if (playing) {
-    const loop = () => {
-      if (!playing) return;
-      minutes = (minutes + 2) % 1440;
-      update();
-      requestAnimationFrame(loop);
-    };
-    loop();
-  }
-};
-map.on('move zoom', update);
-update();
-setTimeout(() => playBtn.click(), 400);
+map.on('move zoom', placeHeart);
+placeHeart();
+animate();
 </script>
 </body>
 </html>
